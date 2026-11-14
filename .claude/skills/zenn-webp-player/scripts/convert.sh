@@ -1,26 +1,29 @@
 #!/bin/bash
 # 動画をアニメーション WebP（無限ループ）に変換する。push はしない。
-# 使い方: convert.sh <動画ファイル> [--fps 10] [--width 720] [--quality 60]
+# 使い方: convert.sh <動画ファイル> [--fps 10] [--width 720] [--quality 60] [--poster 画像]
 # 出力:   $TMPDIR/zenn-webp-player/<日時>.webp と、長さ・縦横比を書いた <日時>.meta
+#         --poster を付けると、停止中に出す画像 <日時>-poster.webp も作る
 set -euo pipefail
 
 MAX_BYTES=$((20 * 1024 * 1024)) # jsDelivr が GitHub のファイルを配信する上限（1 ファイル 20MB）
 
-usage() { echo "使い方: $0 <動画ファイル> [--fps N] [--width PX] [--quality 0-100]" >&2; exit 2; }
+usage() { echo "使い方: $0 <動画ファイル> [--fps N] [--width PX] [--quality 0-100] [--poster 画像]" >&2; exit 2; }
 
 [ $# -ge 1 ] || usage
 input=$1; shift
-fps=10; width=720; quality=60
+fps=10; width=720; quality=60; poster=
 while [ $# -gt 0 ]; do
   case $1 in
     --fps) fps=$2; shift 2 ;;
     --width) width=$2; shift 2 ;;
     --quality) quality=$2; shift 2 ;;
+    --poster) poster=$2; shift 2 ;;
     *) usage ;;
   esac
 done
 [ -f "$input" ] || { echo "動画ファイルが見つかりません: $input" >&2; exit 1; }
-for cmd in ffmpeg ffprobe img2webp; do
+[ -z "$poster" ] || [ -f "$poster" ] || { echo "画像が見つかりません: $poster" >&2; exit 1; }
+for cmd in ffmpeg ffprobe img2webp cwebp; do
   command -v "$cmd" >/dev/null || { echo "$cmd がありません（brew install ffmpeg webp）" >&2; exit 1; }
 done
 
@@ -49,8 +52,10 @@ len=$(awk -v d="$duration" 'BEGIN{s=int(d); if (d>s) s++; h=int(s/3600); m=int(s
 bytes=$(stat -f %z "$out")
 
 printf 'LEN=%s\nASPECT=%s\n' "$len" "$aspect" > "$outdir/$name.meta"
+[ -z "$poster" ] || cwebp -quiet -q 82 "$poster" -o "$outdir/$name-poster.webp"
 
 echo "file=$out"
+[ -z "$poster" ] || echo "poster=$outdir/$name-poster.webp"
 echo "name=$name"
 echo "size=$(awk -v b="$bytes" 'BEGIN{printf "%.2f MB", b/1048576}')"
 echo "length=$len"

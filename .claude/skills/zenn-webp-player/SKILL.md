@@ -6,15 +6,18 @@ description: 画面収録などの動画を Zenn の記事に埋め込みたい�
 # Zenn 用 WebP プレイヤー
 
 動画ファイルとタイトルを受け取り、Zenn の記事にそのまま貼れる `html-embed` ブロックを返す。
-タイトルが無ければ先に聞く。
+タイトルが無ければ先に聞き、不要と言われたらタイトルの引数を省く。
 
 ## 手順
 
 1. 変換する（push はしない）
 
    ```sh
-   .claude/skills/zenn-webp-player/scripts/convert.sh <動画> [--fps 10] [--width 720] [--quality 60]
+   .claude/skills/zenn-webp-player/scripts/convert.sh <動画> [--fps 10] [--width 720] [--quality 60] [--poster <画像>]
    ```
+
+   `--poster` は停止中に出す画像。付けると動画と同じコミットで push され、付けなければ停止中は黒い画面になる。
+   枠の縦横比は動画に合わせるので、画像の比が違うと左右か上下に黒い帯が出る。
 
    `file` `name` `size` `length` `aspect` が出力される。終了コード 3 は 20MB 超で、
    このままでは配信できない。`--fps` `--width` `--quality` のどれを下げるかを提案して変換し直す。
@@ -22,7 +25,7 @@ description: 画面収録などの動画を Zenn の記事に埋め込みたい�
 2. プレビューを開く
 
    ```sh
-   .claude/skills/zenn-webp-player/scripts/preview.sh <手順 1 の file> "<タイトル>"
+   .claude/skills/zenn-webp-player/scripts/preview.sh <手順 1 の file> ["<タイトル>"]
    ```
 
    実際のプレイヤーの形でブラウザに開く。push すると取り消しにくいので、先に目で見てもらう。
@@ -34,7 +37,7 @@ description: 画面収録などの動画を Zenn の記事に埋め込みたい�
 4. push してブロックを作る
 
    ```sh
-   .claude/skills/zenn-webp-player/scripts/publish.sh <手順 1 の file> "<タイトル>"
+   .claude/skills/zenn-webp-player/scripts/publish.sh <手順 1 の file> ["<タイトル>"]
    ```
 
    標準出力がそのまま `html-embed` ブロックになる。標準エラーに「注意:」が出たら内容を伝える。
@@ -55,7 +58,7 @@ description: 画面収録などの動画を Zenn の記事に埋め込みたい�
 
 ## プレイヤーの制限（聞かれたら伝える）
 
-- 音は出ない。シークもできない。一時停止中は止めたコマではなく黒い画面になる
+- 音は出ない。シークもできない。一時停止中は止めたコマではなく、`--poster` の画像（無ければ黒い画面）になる
 - 一時停止は「非表示の間はアニメーションが進まない」という Chrome 系の挙動に頼っている。
   Safari / Firefox では未検証
 - `html-embed` は Zenn の Beta 機能で、JavaScript・`<video>`・`<button>` は使えない。

@@ -37,11 +37,13 @@ count=$(find "$frames" -name '*.png' | wc -l | tr -d ' ')
 
 # img2webp のコマごとのオプションは、指定した位置より後ろのコマすべてに効く
 out=$outdir/$name.webp
-(cd "$frames" && img2webp -loop 0 -lossy -q "$quality" -m 6 -d $((1000 / fps)) ./*.png -o "$out" >/dev/null)
+(cd "$frames" && img2webp -loop 0 -lossy -q "$quality" -m 4 -d $((1000 / fps)) ./*.png -o "$out" >/dev/null)
 
 # 縦横比は変換後のコマから取る（回転やピクセル比の指定があっても見た目どおりになる）
 aspect=$(ffprobe -v error -select_streams v:0 -show_entries stream=width,height -of csv=p=0:s=/ "$frames/000001.png")
 duration=$(ffprobe -v error -show_entries format=duration -of csv=p=0 "$input")
+# アニメーション WebP や GIF など、長さを返さない入力はコマ数から求める
+case $duration in ''|N/A) duration=$(awk -v c="$count" -v f="$fps" 'BEGIN{print c/f}') ;; esac
 len=$(awk -v d="$duration" 'BEGIN{s=int(d); if (d>s) s++; h=int(s/3600); m=int(s%3600/60); x=s%60;
   if (h>0) printf "%d:%02d:%02d", h, m, x; else printf "%d:%02d", m, x}')
 bytes=$(stat -f %z "$out")

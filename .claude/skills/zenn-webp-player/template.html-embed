@@ -1,0 +1,24 @@
+```html-embed
+<div class="p">
+<input type="checkbox" id="p">
+<label for="p" data-title="{{TITLE}}"><img loading="lazy" src="{{SRC}}"></label>
+<label for="p" data-len="{{LEN}}"></label>
+</div>
+<style>
+.p{max-width:640px;margin:auto;border-radius:8px;overflow:hidden;background:#111;color:#fff;font:12px sans-serif;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent}
+#p{display:none}
+.p label{display:block;position:relative;cursor:pointer}
+.p label:first-of-type{aspect-ratio:{{ASPECT}};background:#000}
+.p img{display:none;width:100%;height:100%;object-fit:contain;-webkit-user-drag:none}
+.p label:first-of-type::before{content:attr(data-title);position:absolute;left:0;right:0;bottom:calc(50% - 64px);text-align:center;font-size:15px;font-weight:bold;padding:0 16px}
+.p label:first-of-type::after{content:"▶";position:absolute;inset:0;margin:auto;width:64px;height:64px;border-radius:50%;background:#fff3;display:grid;place-items:center;font-size:26px}
+.p label:last-of-type{height:32px;padding:0 60px 0 36px;background:linear-gradient(90deg,#0000,#fff5,#0000) -100% 50%/30% 2px no-repeat content-box,linear-gradient(#333 0 0) 0 50%/100% 2px no-repeat content-box}
+.p label:last-of-type::before{content:"▶";position:absolute;left:12px;top:8px;width:12px;height:14px;line-height:14px}
+.p label:last-of-type::after{content:attr(data-len);position:absolute;right:12px;top:9px}
+#p:checked+label img{display:block}
+#p:checked+label::before,#p:checked+label::after{display:none}
+#p:checked~label:last-of-type{animation:sw 3.5s ease-in-out infinite}
+#p:checked~label:last-of-type::before{content:"";top:9px;height:12px;background:linear-gradient(90deg,#fff 0 35%,#0000 0 65%,#fff 0)}
+@keyframes sw{to{background-position:200% 50%,0 50%}}
+</style>
+```
